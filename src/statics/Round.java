@@ -20,11 +20,7 @@ public class Round {
         handRound = 0;
         girlExposed = false;
         Deck deck = new Deck();
-        deck.shuffle();
-        Players.getPlayer(0).reset();
-        Players.getPlayer(1).reset();
-        Players.getPlayer(2).reset();
-        Players.getPlayer(3).reset();
+        Players.reset();
         int player = 0;
         while (deck.hasNext()) {
             Players.getPlayer(player++ % 4).addCard(deck.pop());

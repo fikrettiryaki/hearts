@@ -64,7 +64,10 @@ public class PcPlayer extends Player {
         }
         if(Hand.cardsCollected == 3){
             if(Hand.getScore() == 0){
-                return cardMap.get(Suit.SPADES).last();
+                Card card = cardMap.get(Suit.SPADES).last();
+                if(card.getValue() > 0){
+                    return maxBefore(card);
+                }
             }
         }
         Card card = maxBefore(Hand.getCurrentMax());

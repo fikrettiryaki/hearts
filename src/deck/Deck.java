@@ -18,13 +18,11 @@ public class Deck {
             }
         }
         playDeck = new ArrayList<>(cards);
-    }
-
-    public void shuffle() {
-        playDeck.clear();
-        playDeck.addAll(cards);
+        Collections.shuffle(playDeck);
+        Collections.shuffle(playDeck);
         Collections.shuffle(playDeck);
     }
+
 
     public boolean hasNext(){
         return !playDeck.isEmpty();
@@ -37,7 +35,4 @@ public class Deck {
         return playDeck.remove(0);
     }
 
-    public void push(Card card) {
-        playDeck.add(card);
-    }
 }

@@ -63,4 +63,9 @@ public class Card implements Comparable{
     public boolean equals(Object obj) {
         return ((Card)obj).getOrderValue() == this.getOrderValue();
     }
+
+    @Override
+    public String toString() {
+        return suit.getSign()+face.getSign();
+    }
 }

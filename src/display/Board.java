@@ -1,7 +1,7 @@
 package display;
 
 import deck.Card;
-import play.game.Game;
+import play.game.GameEngine;
 import statics.Hand;
 import statics.Players;
 
@@ -12,11 +12,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
@@ -57,8 +54,8 @@ public class Board {
         ex.submit(new Runnable() {
             @Override
             public void run() {
-                Game game = new Game(100);
-                game.playGame();
+                GameEngine gameEngine = new GameEngine(100);
+                gameEngine.playGame();
             }
         });
 
@@ -142,21 +139,49 @@ public class Board {
             paintHumanPlayersCards(g2d);
             paintHandCards(g2d);
             paintAnimatedCard(g2d);
-            paintScore(g2d);
+            paintDebug(g2d);
             g2d.dispose();
+        }
+
+        private void paintDebug(Graphics2D g2dain) {
+            Graphics2D g2d = (Graphics2D) g2dain.create();
+            g2d.translate(  5,  getHeight()/2);
+            String text = Players.getPlayer(1).toString();
+            drawString(g2d,text, 0,0);
+
+
+            g2d.translate(  getWidth()-250,  0);
+            text = Players.getPlayer(3).toString();
+            drawString(g2d,text, 0,0);
+
+            g2d.translate( - getWidth()/2,  -getHeight()/2+10);
+            text = Players.getPlayer(2).toString();
+            drawString(g2d,text, 0,0);
+
+
+            g2d.translate(  0,  getHeight()-230);
+            text =  Players.getPlayer(0).toString();
+            drawString(g2d,text, 0,0);
+
+            g2d.dispose();
+        }
+
+        private void drawString(Graphics g, String text, int x, int y) {
+            for (String line : text.split("\n"))
+                g.drawString(line, x, y += g.getFontMetrics().getHeight());
         }
 
         private void paintAnimatedCard(Graphics2D g2d) {
             if(Animation.animate == true){
                 Rectangle fromRectangle = Animation.animatePlayer == 0 ? roundCards[humanPlayer.cardOrder.get(Animation.animateCard)]
                         : handCardsFrom[Animation.animatePlayer];
-
+Rectangle cardRectangle = Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]);
                 g2d.setColor(Color.WHITE);
-                g2d.fill( Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]));
+                g2d.fill(cardRectangle);
                 g2d.setColor(Color.BLACK);
-                g2d.draw(Animation.getRectangle(fromRectangle,handCards[Animation.animatePlayer]));
+                g2d.draw(cardRectangle);
                 Graphics2D copy = (Graphics2D) g2d.create();
-                paintCard(copy, Animation.animateCard, Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]));
+                paintCard(copy, Animation.animateCard, cardRectangle);
                 copy.dispose();
                 Animation.setAnimateNext();
             }
@@ -193,31 +218,6 @@ public class Board {
             }
         }
 
-        private void paintScore(Graphics2D g2dain) {
-            Graphics2D g2d = (Graphics2D) g2dain.create();
-            g2d.translate(  5,  5);
-
-            String text = "You: %s\nOsman: %s\nAykut: %s\nCem %s";
-            text = String.format(text,
-                    Players.getPlayer(0).getRoundScore()
-                    , Players.getPlayer(1).getRoundScore()
-                    , Players.getPlayer(2).getRoundScore()
-                    , Players.getPlayer(3).getRoundScore());
-            FontMetrics fm = g2d.getFontMetrics();
-
-            g2d.drawString(text, 0, fm.getAscent());
-            g2d.translate(  0,  15);
-
-            text = "You: %s\nOsman: %s\nAykut: %s\nCem %s";
-            text = String.format(text,
-                    Players.getPlayer(0).getGameScore()
-                    , Players.getPlayer(1).getGameScore()
-                    , Players.getPlayer(2).getGameScore()
-                    , Players.getPlayer(3).getGameScore());
-
-            g2d.drawString(text, 0, fm.getAscent());
-            g2d.dispose();
-        }
 
         protected void paintCard(Graphics2D g2d, Card card, Rectangle bounds) {
             g2d.translate(bounds.x + 5, bounds.y + 5);

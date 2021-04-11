@@ -72,6 +72,28 @@ strategy = Strategy.Safe;
         gameScore += roundScore;
     }
 
-    ;
+    public String getName(){
+return name;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(name);
+        sb.append(": ");
+        sb.append(roundScore);
+        sb.append("/");
+        sb.append(gameScore);
+        Suit suit=null;
+        for(Card card : cards){
+            if(suit != card.getSuit()){
+                suit = card.getSuit();
+                sb.append("\n");
+            }
+            sb.append(card.toString());
+        }
+        return sb.toString();
+    }
+
+
 
 }
