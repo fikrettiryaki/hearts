@@ -1,7 +1,6 @@
 package play.player;
 
 import deck.Card;
-import deck.Deck;
 import deck.Face;
 import deck.Suit;
 import statics.Hand;
@@ -15,10 +14,10 @@ public class HumanPlayer extends Player{
     public Map<Card, Integer> cardOrder = new HashMap<>();
     private Card selected;
 
-    @Override
-    public void analyzeCards() {
-
+    public HumanPlayer(String name) {
+        super(name);
     }
+
 
     @Override
     public Card getNext(int begins) {

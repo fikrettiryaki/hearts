@@ -81,14 +81,12 @@ public class Hand {
         cards = new Card[4];
     }
 
-    public static int getCurrentMaxFace() {
-        int max = cards[starter].getFace().getValue();
-        Suit suit = cards[starter].getSuit();
+    public static Card getCurrentMax() {
+        Card max = getStartersCard();
         for (int i = 0; i < 4; i++) {
-            if(cards[i] != null && cards[i].getSuit() == suit){
-                if(cards[starter].getFace().getValue() > max){
-                    max = cards[starter].getFace().getValue();
-                }
+            if(cards[i] != null && cards[i].getSuit() == getStartersSuit()){
+                if(cards[i].getFace().getValue() > max.getFace().getValue())
+                max = cards[i];
             }
         }
         return max;

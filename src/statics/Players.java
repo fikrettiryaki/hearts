@@ -5,14 +5,14 @@ import play.player.PcPlayer;
 import play.player.Player;
 
 public class Players {
-    public static HumanPlayer humanPlayer = new HumanPlayer();
+    public static HumanPlayer humanPlayer = new HumanPlayer("You");
     public static Player[] players = new Player[4];
 
     static{
         players[0] = humanPlayer;
-        players[1] = new PcPlayer();
-        players[2] = new PcPlayer();
-        players[3] = new PcPlayer();
+        players[1] = new PcPlayer("Osman");
+        players[2] = new PcPlayer("Cem");
+        players[3] = new PcPlayer("Aykut");
     }
 
     public static Player getPlayer(int player){

@@ -5,30 +5,20 @@ import deck.Face;
 import deck.Suit;
 import statics.Hand;
 import statics.Round;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import util.Strategy;
 
 public class PcPlayer extends Player {
 
-    private int strategy = 0;
-
-
-    List<Card> safeOrderedCards = new ArrayList<>();
-
-
-    @Override
-    public void analyzeCards() {
-        safeOrderedCards = cards.stream().collect(Collectors.toList());
-        safeOrderedCards.sort(Comparator.comparingInt(Card::getSafeValue));
+    public PcPlayer(String name) {
+        super(name);
     }
 
     @Override
     public Card getNext(int begins) {
-
-    Card card;
+        analyzeCards();
+        Card card;
         if (Hand.cardsCollected == 0) {
-            card = firstHandCard();
+            card = firstCard();
 
         } else {
             card = laterHandCard();
@@ -42,33 +32,60 @@ public class PcPlayer extends Player {
 
     private Card laterHandCard() {
         if(cardMap.get(Hand.getStartersSuit()).size() == 0){
-            if(strategy == 0){
+            if(strategy == Strategy.Safe){
                 return getRidOff();
             }
         }
+        if(cardMap.get(Hand.getStartersSuit()).size() == 1) {
+            return cardMap.get(Hand.getStartersSuit()).iterator().next();
+        }
+        if(Hand.getStartersSuit() == Suit.SPADES && !Round.girlExposed){
+            return getSpades();
+        }
         return maxInSuit();
+
+    }
+
+    private Card maxBefore(Card max){
+        Card card = null;
+        for(Card c : cardMap.get(max.getSuit())){
+            if(c.getFace().getValue()<max.getFace().getValue()){
+                card = c;
+            }
+        }
+        return card;
+    }
+
+    private Card getSpades() {
+        if(cardMap.get(Suit.SPADES).contains(new Card(Suit.SPADES, Face.QUEEN))){
+            if(Hand.getCurrentMax().getFace().getValue() > Face.QUEEN.getValue()){
+                return new Card(Suit.SPADES, Face.QUEEN);
+            }
+        }
+        if(Hand.cardsCollected == 3){
+            if(Hand.getScore() == 0){
+                return cardMap.get(Suit.SPADES).last();
+            }
+        }
+        Card card = maxBefore(Hand.getCurrentMax());
+        if(card == null){
+            card = maxBefore(new Card(Suit.SPADES, Face.QUEEN));
+        }
+        if(card == null){
+            card = cardMap.get(Suit.SPADES).last();
+        }
+        return card;
     }
 
     private Card maxInSuit() {
+        Card card = maxBefore(Hand.getCurrentMax());
 
-        Card card = null;
-        Card max = null;
-        for(Card c : cardMap.get(Hand.getStartersSuit())){
-            if(c.getFace().getValue()<Hand.getCurrentMaxFace()){
-                card = c;
-            }
-            max = c;
-        }
         if(Hand.cardsCollected == 3){
-            if(max.getSuit() == Suit.SPADES && max.getFace() == Face.QUEEN){
-                //TODO: max before queen
-               return cardMap.get(Hand.getStartersSuit()).iterator().next();
-           }
             if(Hand.getScore() == 0) {
-                return max;
+                return cardMap.get(Hand.getStartersSuit()).last();
             }
             if(card == null){
-                return max;
+                return cardMap.get(Hand.getStartersSuit()).last();
             }
         }
 
@@ -76,25 +93,29 @@ public class PcPlayer extends Player {
             return card;
         }
 
-
-        return cardMap.get(Hand.getStartersSuit()).iterator().next();
+        return cardMap.get(Hand.getStartersSuit()).first();
     }
 
     private Card getRidOff() {
-        return safeOrderedCards.get(safeOrderedCards.size()-1);
+        if (Round.handRound == 0) {
+            for (int i = safeOrderedCards.size(); i > 0; i--) {
+                if (safeOrderedCards.get(i - 1).getValue() == 0) {
+                    return safeOrderedCards.get(i - 1);
+                }
+            }
+        }
+        return safeOrderedCards.get(safeOrderedCards.size() - 1);
     }
 
-    private Card firstHandCard() {
+    private Card firstCard() {
         if (Round.handRound == 0) {
             return cards.iterator().next();
         }
 
-        if(strategy == 0){
+        if(strategy == Strategy.Safe){
             return  getSafeCard();
         }
         return getWinnerCard();
-
-
     }
 
     private Card getWinnerCard() {
@@ -104,6 +125,5 @@ public class PcPlayer extends Player {
     private Card getSafeCard() {
         return safeOrderedCards.iterator().next();
     }
-
 
 }

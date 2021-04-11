@@ -1,7 +1,5 @@
 package deck;
 
-import display.Board;
-
 public class Card implements Comparable{
     private Suit suit;
     private Face face;
@@ -44,6 +42,11 @@ public class Card implements Comparable{
         if(suit == Suit.SPADES && face == Face.ONE){
             return 9970;
         }
+
+        if(face.getValue()<5){
+            return suit.getValue() + face.getValue() * 100;
+        }
+
         if(suit == Suit.HEARTS ){
             return 8000 + face.getValue();
         }

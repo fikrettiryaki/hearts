@@ -139,21 +139,30 @@ public class Board {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
-            Set<Card> cards = humanPlayer.getHand();
+            paintHumanPlayersCards(g2d);
+            paintHandCards(g2d);
+            paintAnimatedCard(g2d);
+            paintScore(g2d);
+            g2d.dispose();
+        }
 
-            for (Card card : cards) {
-                Rectangle bounds = roundCards[humanPlayer.cardOrder.get(card)];
-                System.out.println(bounds);
-                if (bounds != null) {
-                    g2d.setColor(Color.WHITE);
-                    g2d.fill(bounds);
-                    g2d.setColor(Color.BLACK);
-                    g2d.draw(bounds);
-                    Graphics2D copy = (Graphics2D) g2d.create();
-                    paintCard(copy, card, bounds);
-                    copy.dispose();
-                }
+        private void paintAnimatedCard(Graphics2D g2d) {
+            if(Animation.animate == true){
+                Rectangle fromRectangle = Animation.animatePlayer == 0 ? roundCards[humanPlayer.cardOrder.get(Animation.animateCard)]
+                        : handCardsFrom[Animation.animatePlayer];
+
+                g2d.setColor(Color.WHITE);
+                g2d.fill( Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]));
+                g2d.setColor(Color.BLACK);
+                g2d.draw(Animation.getRectangle(fromRectangle,handCards[Animation.animatePlayer]));
+                Graphics2D copy = (Graphics2D) g2d.create();
+                paintCard(copy, Animation.animateCard, Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]));
+                copy.dispose();
+                Animation.setAnimateNext();
             }
+        }
+
+        private void paintHandCards(Graphics2D g2d) {
             for (int i = 0; i < 4; i++) {
                 int drawTurn = (i + Hand.starter) % 4;
                 if (Hand.cards[drawTurn] != null) {
@@ -166,32 +175,26 @@ public class Board {
                     copy.dispose();
                 }
             }
-
-
-            if(Animation.animate == true){
-                Rectangle fromRectangle = Animation.animatePlayer == 0 ? roundCards[humanPlayer.cardOrder.get(Animation.animateCard)]
-                        : handCardsFrom[Animation.animatePlayer];
-
-
-
-
-
-                g2d.setColor(Color.WHITE);
-                g2d.fill( Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]));
-                g2d.setColor(Color.BLACK);
-                g2d.draw(Animation.getRectangle(fromRectangle,handCards[Animation.animatePlayer]));
-                Graphics2D copy = (Graphics2D) g2d.create();
-                paintCard(copy, Animation.animateCard, Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]));
-                copy.dispose();
-                Animation.setAnimateNext();
-            }
-            Graphics2D copy = (Graphics2D) g2d.create();
-            paintScore(copy);
-            copy.dispose();
-            g2d.dispose();
         }
 
-        private void paintScore(Graphics2D g2d) {
+        private void paintHumanPlayersCards(Graphics2D g2d) {
+            for (Card card :  humanPlayer.getHand()) {
+                Rectangle bounds = roundCards[humanPlayer.cardOrder.get(card)];
+                System.out.println(bounds);
+                if (bounds != null) {
+                    g2d.setColor(Color.WHITE);
+                    g2d.fill(bounds);
+                    g2d.setColor(Color.BLACK);
+                    g2d.draw(bounds);
+                    Graphics2D copy = (Graphics2D) g2d.create();
+                    paintCard(copy, card, bounds);
+                    copy.dispose();
+                }
+            }
+        }
+
+        private void paintScore(Graphics2D g2dain) {
+            Graphics2D g2d = (Graphics2D) g2dain.create();
             g2d.translate(  5,  5);
 
             String text = "You: %s\nOsman: %s\nAykut: %s\nCem %s";
@@ -213,6 +216,7 @@ public class Board {
                     , Players.getPlayer(3).getGameScore());
 
             g2d.drawString(text, 0, fm.getAscent());
+            g2d.dispose();
         }
 
         protected void paintCard(Graphics2D g2d, Card card, Rectangle bounds) {
