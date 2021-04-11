@@ -79,12 +79,10 @@ public class Board {
                         Rectangle bounds = roundCards[humanPlayer.cardOrder.get(card)];
                         if (bounds.contains(e.getPoint())) {
                             clickedCard = card;
-
                         }
                     }
                     if (clickedCard != null) {
                         humanPlayer.cardClicked(clickedCard);
-
                         repaint();
                     }
                 }
@@ -207,7 +205,12 @@ Rectangle cardRectangle = Animation.getRectangle(fromRectangle, handCards[Animat
                 Rectangle bounds = roundCards[humanPlayer.cardOrder.get(card)];
                 System.out.println(bounds);
                 if (bounds != null) {
+                    if(WrongCard.exists && card.equals(WrongCard.card)){
+                    g2d.setColor(Color.GRAY);
+                    WrongCard.next();
+                }else
                     g2d.setColor(Color.WHITE);
+            }
                     g2d.fill(bounds);
                     g2d.setColor(Color.BLACK);
                     g2d.draw(bounds);
@@ -216,7 +219,7 @@ Rectangle cardRectangle = Animation.getRectangle(fromRectangle, handCards[Animat
                     copy.dispose();
                 }
             }
-        }
+
 
 
         protected void paintCard(Graphics2D g2d, Card card, Rectangle bounds) {

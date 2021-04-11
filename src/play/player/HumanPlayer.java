@@ -3,6 +3,7 @@ package play.player;
 import deck.Card;
 import deck.Face;
 import deck.Suit;
+import display.WrongCard;
 import statics.Hand;
 import statics.Round;
 
@@ -41,9 +42,12 @@ public class HumanPlayer extends Player{
     public void cardClicked(Card card){
         if(Hand.cardsCollected==0){
             firstHandCard(card);
-            return;
+        }else {
+            laterHandCard(card);
         }
-        laterHandCard(card);
+        if(selected==null){
+            WrongCard.set(card);
+        }
     }
 
     private void laterHandCard(Card card) {
