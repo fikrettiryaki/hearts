@@ -21,7 +21,6 @@ public class Players {
 
 
     public static void setHandScores(int handWinner, int handScore) {
-
             Players.getPlayer(handWinner).addScore(handScore);
 
     }
@@ -29,6 +28,26 @@ public class Players {
     public static void reset() {
         for(Player p : players){
             p.reset();
+        }
+    }
+
+    public static void endRound() {
+        boolean onePlayerMaxed=false;
+        for(int i = 0; i < 4; i++) {
+            if( getPlayer(i).getRoundScore() == 26){
+                onePlayerMaxed=true;
+            }
+        }
+
+        for(int i = 0; i < 4; i++) {
+            if(onePlayerMaxed){
+                if(getPlayer(i).getRoundScore()==0){
+                    getPlayer(i).addScore(26);
+                }else{
+                    getPlayer(i).addScore(-26);
+                }
+            }
+          getPlayer(i).addRoundScore();
         }
     }
 }

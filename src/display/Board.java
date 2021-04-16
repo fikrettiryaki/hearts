@@ -1,7 +1,7 @@
 package display;
 
 import deck.Card;
-import play.game.GameEngine;
+import play.game.Game;
 import statics.Hand;
 import statics.Players;
 
@@ -32,31 +32,25 @@ public class Board {
     }
 
     public Board() {
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-                    ex.printStackTrace();
-                }
-
-
-                JFrame frame = new JFrame("Testing");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.add(new GamePane());
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
+        EventQueue.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+                ex.printStackTrace();
             }
+
+
+            JFrame frame = new JFrame("Testing");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.add(new GamePane());
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
         });
         ExecutorService ex = new ForkJoinPool();
-        ex.submit(new Runnable() {
-            @Override
-            public void run() {
-                GameEngine gameEngine = new GameEngine(100);
-                gameEngine.playGame();
-            }
+        ex.submit(() -> {
+            Game game = new Game(100);
+            game.playGame();
         });
 
     }
@@ -170,10 +164,10 @@ public class Board {
         }
 
         private void paintAnimatedCard(Graphics2D g2d) {
-            if(Animation.animate == true){
+            if (Animation.animate) {
                 Rectangle fromRectangle = Animation.animatePlayer == 0 ? roundCards[humanPlayer.cardOrder.get(Animation.animateCard)]
                         : handCardsFrom[Animation.animatePlayer];
-Rectangle cardRectangle = Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]);
+                Rectangle cardRectangle = Animation.getRectangle(fromRectangle, handCards[Animation.animatePlayer]);
                 g2d.setColor(Color.WHITE);
                 g2d.fill(cardRectangle);
                 g2d.setColor(Color.BLACK);
@@ -186,17 +180,18 @@ Rectangle cardRectangle = Animation.getRectangle(fromRectangle, handCards[Animat
         }
 
         private void paintHandCards(Graphics2D g2d) {
-            for (int i = 0; i < 4; i++) {
-                int drawTurn = (i + Hand.starter) % 4;
-                if (Hand.cards[drawTurn] != null) {
+            int i = 0;
+            for (Card card : Hand.cards) {
+                int drawCell = (i++ + Hand.starter) % 4;
+
                     g2d.setColor(Color.WHITE);
-                    g2d.fill(handCards[drawTurn]);
+                    g2d.fill(handCards[drawCell]);
                     g2d.setColor(Color.BLACK);
-                    g2d.draw(handCards[drawTurn]);
+                    g2d.draw(handCards[drawCell]);
                     Graphics2D copy = (Graphics2D) g2d.create();
-                    paintCard(copy, Hand.cards[drawTurn], handCards[drawTurn]);
+                    paintCard(copy, card, handCards[drawCell]);
                     copy.dispose();
-                }
+
             }
         }
 

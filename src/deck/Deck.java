@@ -1,17 +1,14 @@
 package deck;
 
-import display.Board;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class Deck {
-    private List<Card> cards;
     private List<Card> playDeck;
 
     public Deck() {
-        cards = new ArrayList<>(52);
+        List<Card> cards = new ArrayList<>(52);
         for (Suit suit : Suit.items) {
             for (Face face : Face.items) {
                 cards.add(new Card(suit, face));
@@ -24,7 +21,7 @@ public class Deck {
     }
 
 
-    public boolean hasNext(){
+    public boolean hasNext() {
         return !playDeck.isEmpty();
     }
 

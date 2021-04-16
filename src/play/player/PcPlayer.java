@@ -1,11 +1,11 @@
 package play.player;
 
 import deck.Card;
-import deck.Face;
 import deck.Suit;
-import statics.Hand;
-import statics.Round;
-import util.Strategy;
+import play.game.Round;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PcPlayer extends Player {
 
@@ -14,119 +14,149 @@ public class PcPlayer extends Player {
     }
 
     @Override
-    public Card getNext(int begins) {
-        analyzeCards();
+    public Card getNext(int playerOrder, List<Card> addedCards, Map<Suit, TreeSet<Card>> exposedCards) {
         Card card;
-        if (Hand.cardsCollected == 0) {
-            card = firstCard();
-
+        if (playerOrder == 0) {
+            card = firstCard(exposedCards);
         } else {
-            card = laterHandCard();
+            card = laterHandCard(playerOrder, addedCards);
         }
-        cardMap.get(card.getSuit()).remove(card);
         cards.remove(card);
-        safeOrderedCards.remove(card);
         return card;
 
     }
 
-    private Card laterHandCard() {
-        if(cardMap.get(Hand.getStartersSuit()).size() == 0){
-            if(strategy == Strategy.Safe){
-                return getRidOff();
-            }
-        }
-        if(cardMap.get(Hand.getStartersSuit()).size() == 1) {
-            return cardMap.get(Hand.getStartersSuit()).iterator().next();
-        }
-        if(Hand.getStartersSuit() == Suit.SPADES && !Round.girlExposed){
-            return getSpades();
-        }
-        return maxInSuit();
+    private Card laterHandCard(int playerOrder, List<Card> addedCards) {
+        Suit handSuit = addedCards.get(0).getSuit();
+        List<Card> sameSuitCards = getSameSuitCards(handSuit);
 
+        if(sameSuitCards.size() == 0) {
+            return getRidOff();
+        }
+
+        if(sameSuitCards.size() == 1) {
+            return sameSuitCards.get(0);
+        }
+
+        if(playerOrder==3){
+            return getLastCard(addedCards, sameSuitCards);
+        }
+
+        return getMaxBefore(addedCards, sameSuitCards);
     }
 
-    private Card maxBefore(Card max){
-        Card card = null;
-        for(Card c : cardMap.get(max.getSuit())){
-            if(c.getFace().getValue()<max.getFace().getValue()){
-                card = c;
-            }
+    private Card getLastCard(List<Card> addedCards, List<Card> sameSuitCards) {
+        if(hasPoints(addedCards)){
+            return getMaxBeforeOrMax(addedCards, sameSuitCards);
         }
-        return card;
+        Card c = sameSuitCards.get(sameSuitCards.size()-1);
+        if(c.getValue()==13){
+            return sameSuitCards.get(sameSuitCards.size()-2);
+        }
+        return c;
     }
 
-    private Card getSpades() {
-        if(cardMap.get(Suit.SPADES).contains(new Card(Suit.SPADES, Face.QUEEN))){
-            if(Hand.getCurrentMax().getFace().getValue() > Face.QUEEN.getValue()){
-                return new Card(Suit.SPADES, Face.QUEEN);
-            }
-        }
-        if(Hand.cardsCollected == 3){
-            if(Hand.getScore() == 0){
-                Card card = cardMap.get(Suit.SPADES).last();
-                if(card.getValue() > 0){
-                    return maxBefore(card);
+    private Card getMaxBefore(List<Card> addedCards, List<Card> sameSuitCards) {
+        Card handMax = getCurrentMax( addedCards);
+        Card selected = null;
+        Card oneBigger = null;
+        for (Card card : sameSuitCards) {
+            if (card.getFace().getValue() < handMax.getFace().getValue()) {
+                selected = card;
+            } else {
+                if (oneBigger == null) {
+                    oneBigger = card;
                 }
             }
         }
-        Card card = maxBefore(Hand.getCurrentMax());
-        if(card == null){
-            card = maxBefore(new Card(Suit.SPADES, Face.QUEEN));
+
+        if (selected != null) {
+            return selected;
         }
-        if(card == null){
-            card = cardMap.get(Suit.SPADES).last();
+
+        if (oneBigger.getValue() == 13) {
+            return sameSuitCards.get(sameSuitCards.size() - 1);
         }
-        return card;
+
+        return oneBigger;
     }
 
-    private Card maxInSuit() {
-        Card card = maxBefore(Hand.getCurrentMax());
-
-        if(Hand.cardsCollected == 3){
-            if(Hand.getScore() == 0) {
-                return cardMap.get(Hand.getStartersSuit()).last();
-            }
-            if(card == null){
-                return cardMap.get(Hand.getStartersSuit()).last();
+    private Card getMaxBeforeOrMax(List<Card> addedCards, List<Card> sameSuitCards) {
+        Card handMax = getCurrentMax(addedCards);
+        Card selected = null;
+        for(Card card : sameSuitCards) {
+            if(card.getFace().getValue() < handMax.getFace().getValue()){
+                selected = card;
             }
         }
-
-        if(card != null){
-            return card;
+        if(selected != null) {
+            return selected;
         }
+       if(sameSuitCards.get(sameSuitCards.size() - 1).getValue()==13){
+            return sameSuitCards.get(sameSuitCards.size() - 2);
+        }
+        return sameSuitCards.get(sameSuitCards.size() - 1);
 
-        return cardMap.get(Hand.getStartersSuit()).first();
     }
+
+    private List<Card> getSameSuitCards(Suit handSuit) {
+        return cards.stream().filter(c->c.getSuit() == handSuit).collect(Collectors.toList());
+    }
+
+    private boolean hasPoints(List<Card> addedCards){
+        return addedCards.stream().mapToInt(Card::getValue).sum() > 0;
+    }
+
 
     private Card getRidOff() {
-        if (Round.handRound == 0) {
-            for (int i = safeOrderedCards.size(); i > 0; i--) {
-                if (safeOrderedCards.get(i - 1).getValue() == 0) {
-                    return safeOrderedCards.get(i - 1);
+        if (cards.size() == 13) {
+            cards.stream().filter(c->c.getValue()==0).collect(Collectors.toList())
+                    .stream().min((o1, o2) -> o2.getSafeValue() - o1.getSafeValue()).get();
+            }
+        return cards.stream().min((o1, o2) -> o2.getSafeValue() - o1.getSafeValue()).get();
+    }
+
+    private Card firstCard(Map<Suit, TreeSet<Card>> exposedCards) {
+        if (cards.size() == 13) {
+            return cards.iterator().next();
+        }
+        return  getSafeCard(exposedCards);
+
+    }
+
+    private Card getSafeCard(Map<Suit, TreeSet<Card>> exposedCards) {
+        List<AnalyzeSuit> analyzedSuits = new ArrayList<>();
+        for(Suit suit : Suit.items) {
+            TreeSet<Card> suitList = new TreeSet<>();
+             cards.stream().filter(c->c.getSuit() == suit).forEach(suitList::add);
+             if(suitList.size()>0){
+                 analyzedSuits.add(new AnalyzeSuit(suitList, exposedCards.get(suit)));
+             }
+        }
+        if(analyzedSuits.size()==1){
+            return analyzedSuits.get(0).card;
+        }
+        analyzedSuits.sort(Comparator.comparingInt(o -> o.dangerLevel));
+
+        if(analyzedSuits.get(0).card.getValue() == 1 && exposedCards.get(Suit.HEARTS).size() == 0){
+            return analyzedSuits.get(1).card;
+        }
+
+
+        return analyzedSuits.get(0).card;
+    }
+
+    public Card getCurrentMax(List<Card> cards) {
+        Card starterCard = cards.get(0);
+
+        for(Card c : cards){
+            if (starterCard.getSuit() == c.getSuit()) {
+                if (starterCard.getOrderValue() < c.getOrderValue()) {
+                    starterCard = c;
                 }
             }
         }
-        return safeOrderedCards.get(safeOrderedCards.size() - 1);
-    }
-
-    private Card firstCard() {
-        if (Round.handRound == 0) {
-            return cards.iterator().next();
-        }
-
-        if(strategy == Strategy.Safe){
-            return  getSafeCard();
-        }
-        return getWinnerCard();
-    }
-
-    private Card getWinnerCard() {
-        return cards.iterator().next();
-    }
-
-    private Card getSafeCard() {
-        return safeOrderedCards.iterator().next();
+        return starterCard;
     }
 
 }

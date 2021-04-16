@@ -13,7 +13,6 @@ public class Animation {
     public static int animateCount = 0;
     private static int magicNumber = 50;
 
-
     public static Rectangle getRectangle(Rectangle fromRectangle, Rectangle toRectangle) {
 
         if (animateCount < 1) {

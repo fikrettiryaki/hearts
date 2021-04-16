@@ -3,24 +3,32 @@ package statics;
 import deck.Card;
 import deck.Suit;
 import display.Animation;
+import play.game.Round;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 
 public class Hand {
 
+    public static final List<Card> cards = new ArrayList<>();
     public static int starter;
 
-    public static Card[] cards = new Card[4];
+    public Hand(int start) {
+        starter = start;
+        cards.clear();
+    }
 
 
-    public static int cardsCollected = 0;
-
-    public static void collectCards(int begins) {
-        Hand.initialize(begins);
+    public void collectCards(int begins, Map<Suit, TreeSet<Card>> exposedCards) {
+        cards.clear();
         for (int j = 0; j < 4; j++) {
-           Card card =  Players.getPlayer((j + begins) % 4).getNext(begins);
+            Card card = Players.getPlayer((j + begins) % 4).getNext(j, cards, exposedCards);
 
             Animation.setAnimationCard(card, (j + begins) % 4);
 
-            while(Animation.animate == true){
+            while (Animation.animate) {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -28,68 +36,38 @@ public class Hand {
                 }
             }
 
-            Hand.setCard((j + begins) % 4 , card);
-            cardsCollected++;
+            cards.add(card);
         }
     }
 
-    public static Card getStartersCard(){
-        return cards[starter];
-    }
 
-    public static Suit getStartersSuit(){
-        return cards[starter].getSuit();
-    }
 
-    public static void setCard(int i, Card card) {
-        cards[i] = card;
-    }
+    public int getWinner() {
+        Card starterCard = cards.get(0);
 
-    public static int getWinner( ) {
-        int orderVal = cards[starter].getOrderValue();
-        Suit selectedSuit = cards[starter].getSuit();
-        int winner = starter;
-
-        for(int i =0; i<4;i++) {
-            if ( selectedSuit == cards[i].getSuit()) {
-                if (orderVal < cards[i].getOrderValue()) {
+        int winner = 0;
+        for(int i =1; i<4; i++){
+            if (starterCard.getSuit() == cards.get(i).getSuit()) {
+                if (starterCard.getOrderValue() < cards.get(i).getOrderValue()) {
                     winner = i;
-                    orderVal = cards[i].getOrderValue();
+                    starterCard = cards.get(i);
                 }
             }
         }
-
-        return winner;
+        return (winner+starter)%4;
     }
 
-    public static int getScore() {
+    public int getScore() {
         int total = 0;
-        for (int i = 0; i < 4; i++) {
-            if(cards[i] != null) {
-                total += cards[i].getValue();
-            }
-        }
-        if(total>10){
-            Round.girlExposed = true;
+        for (Card card : cards) {
+                total += card.getValue();
         }
         return total;
     }
 
-    public static void initialize(int begins) {
-        cardsCollected = 0;
-        starter = begins;
-        cards = new Card[4];
+    public List<Card> getCards(){
+        return cards;
     }
 
-    public static Card getCurrentMax() {
-        Card max = getStartersCard();
-        for (int i = 0; i < 4; i++) {
-            if(cards[i] != null && cards[i].getSuit() == getStartersSuit()){
-                if(cards[i].getFace().getValue() > max.getFace().getValue())
-                max = cards[i];
-            }
-        }
-        return max;
 
-    }
 }
